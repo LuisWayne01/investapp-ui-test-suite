@@ -2,7 +2,7 @@ import os
 
 import pytest
 from playwright.sync_api import Page, expect
-
+from pages.asset_manager_page import AssetManagerPage
 from pages.navbar_component import NavbarComponent
 from pages.login_modal_page import LoginModalPage
 from pages.portfolio_page import PortfolioPage
@@ -12,6 +12,10 @@ UI_BASE_URL = os.getenv("UI_BASE_URL", "http://investapp-frontend.s3-website-us-
 TEST_USER = os.getenv("TEST_USER", "userXX")
 TEST_PASSWORD = os.getenv("TEST_PASSWORD", "password")
 
+
+@pytest.fixture
+def asset_manager_page(page: Page) -> AssetManagerPage:
+    return AssetManagerPage(page)
 
 @pytest.fixture(scope="session")
 def base_url():
