@@ -1,0 +1,12 @@
+.env
+.vscode/launch.json
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+test-results/
+playwright-report/
+playwright-report.html
+reports/
+videos/
+screenshots/
