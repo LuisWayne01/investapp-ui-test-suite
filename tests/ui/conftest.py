@@ -17,6 +17,7 @@ TEST_PASSWORD = os.getenv("TEST_PASSWORD", "password")
 def asset_manager_page(page: Page) -> AssetManagerPage:
     return AssetManagerPage(page)
 
+
 @pytest.fixture(scope="session")
 def base_url():
     return UI_BASE_URL
@@ -51,6 +52,7 @@ def logged_page(page: Page, base_url: str, navbar: NavbarComponent, login_modal:
     expect(navbar.botao_sair).to_be_visible(timeout=10000)
 
     return page
+
 
 @pytest.fixture
 def yield_page(page: Page) -> YieldSimulatorPage:
