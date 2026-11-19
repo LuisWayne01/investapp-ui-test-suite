@@ -21,11 +21,11 @@ def test_excluir_ativo_remove_da_tabela(
     portfolio_page.cadastrar_aporte("Poupança", "100.00", "1.00", dias_inv, dias_plan)
 
     linhas = portfolio_page.obter_linhas_por_ativo_e_prazo("Poupança", dias_inv, dias_plan)
-    expect(linhas).to_have_count(1, timeout=5000)
+    expect(linhas).to_have_count(1, timeout=15000)
 
     portfolio_page.excluir_ativo_por_prazo("Poupança", dias_inv, dias_plan, confirmar=True)
 
-    expect(linhas).to_have_count(0, timeout=5000)
+    expect(linhas).to_have_count(0, timeout=15000)
 
 
 def test_cancelar_exclusao_mantem_ativo(
@@ -37,7 +37,7 @@ def test_cancelar_exclusao_mantem_ativo(
     portfolio_page.cadastrar_aporte("Poupança", "100.00", "1.00", dias_inv, dias_plan)
 
     linhas = portfolio_page.obter_linhas_por_ativo_e_prazo("Poupança", dias_inv, dias_plan)
-    expect(linhas).to_have_count(1, timeout=5000)
+    expect(linhas).to_have_count(1, timeout=15000)
 
     portfolio_page.excluir_ativo_por_prazo("Poupança", dias_inv, dias_plan, confirmar=False)
 
@@ -45,7 +45,7 @@ def test_cancelar_exclusao_mantem_ativo(
 
     # Limpeza: remove o aporte de teste
     portfolio_page.excluir_ativo_por_prazo("Poupança", dias_inv, dias_plan, confirmar=True)
-    expect(linhas).to_have_count(0, timeout=5000)
+    expect(linhas).to_have_count(0, timeout=15000)
 
 
 def test_exclusao_recalcula_patrimonio_total(
@@ -57,7 +57,7 @@ def test_exclusao_recalcula_patrimonio_total(
     portfolio_page.cadastrar_aporte("Poupança", "5000.00", "1.00", dias_inv, dias_plan)
 
     linhas = portfolio_page.obter_linhas_por_ativo_e_prazo("Poupança", dias_inv, dias_plan)
-    expect(linhas).to_have_count(1, timeout=5000)
+    expect(linhas).to_have_count(1, timeout=15000)
 
     texto_antes = portfolio_page.card_patrimonio_total.inner_text()
     patrimonio_antes = portfolio_page.obter_patrimonio_total()

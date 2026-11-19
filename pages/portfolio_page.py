@@ -37,7 +37,8 @@ class PortfolioPage(BasePage):
         self.input_preco_compra.fill(preco)
         self.input_dias_investidos.fill(dias_inv)
         self.input_dias_planejados.fill(dias_plan)
-        self.botao_adicionar.click()
+        with self.page.expect_response(lambda r: r.request.method == "POST", timeout=15000):
+            self.botao_adicionar.click()
 
     def obter_linha_por_ativo_e_prazo(self, nome_ativo: str, dias_inv: str, dias_plan: str) -> Locator:
         """Localiza a linha do ativo que corresponde aos dias cadastrados."""
