@@ -119,8 +119,7 @@ def test_patrimonio_total_recalcula_apos_exclusao(
     portfolio_page.excluir_linha(linha)
     expect(linha).to_have_count(0, timeout=10000)
 
-    soma_da_tabela = portfolio_page.somar_coluna_valor_atual()
-    patrimonio_no_card = portfolio_page.obter_patrimonio_total()
+    patrimonio_no_card, soma_da_tabela = portfolio_page.aguardar_patrimonio_igual_a_soma()
     print(f"Card: R$ {patrimonio_no_card:.2f} | Soma da tabela: R$ {soma_da_tabela:.2f}")
 
     assert abs(patrimonio_no_card - soma_da_tabela) < 0.02, (

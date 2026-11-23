@@ -84,6 +84,11 @@ class PortfolioPage(BasePage):
         texto_prazo = f"{dias_inv} / {dias_plan} dias"
         return self.linhas_de_ativos.filter(has_text=nome_ativo).filter(has_text=texto_prazo).last
 
+    def obter_linhas_por_ativo_e_prazo(self, nome_ativo: str, dias_inv: str, dias_plan: str) -> Locator:
+        """Todas as linhas do ativo/prazo (permite contar antes e depois do cadastro)."""
+        texto_prazo = f"{dias_inv} / {dias_plan} dias"
+        return self.linhas_de_ativos.filter(has_text=nome_ativo).filter(has_text=texto_prazo)
+
     def obter_ultimo_ativo_cadastrado(self, nome_ativo: str) -> Locator:
         """Retorna a última linha inserida na tabela para o ativo informado."""
         return self.obter_linha_por_ativo(nome_ativo)
@@ -146,3 +151,20 @@ class PortfolioPage(BasePage):
 
     def obter_texto_patrimonio_total(self) -> str:
         return self.card_patrimonio_total.inner_text()
+
+    def aguardar_patrimonio_igual_a_soma(self, timeout_ms: int = 15000) -> tuple[float, float]:
+        """Espera o card PATRIMÔNIO ATUAL alcançar a soma da coluna Valor Atual.
+
+        O card e a tabela podem ser atualizados em momentos diferentes (a API é lenta),
+        então lê os dois várias vezes até baterem ou o tempo acabar.
+        Devolve (valor_do_card, soma_da_tabela) da última leitura.
+        """
+        intervalo_ms = 500
+        tentativas = max(1, timeout_ms // intervalo_ms)
+        for _ in range(tentativas):
+            soma = self.somar_coluna_valor_atual()
+            card = self.obter_patrimonio_total()
+            if abs(card - soma) < 0.02:
+                break
+            self.page.wait_for_timeout(intervalo_ms)
+        return card, soma

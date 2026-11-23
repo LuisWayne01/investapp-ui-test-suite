@@ -28,7 +28,8 @@ def test_login_ui_com_sucesso(page: Page, base_url: str, navbar: NavbarComponent
     navbar.clicar_entrar()
     login_modal.realizar_login(TEST_USER, TEST_PASSWORD)
 
-    expect(navbar.botao_sair).to_be_visible(timeout=8000)
+    # Sem expect() aqui: se falhar, o log não imprime a tela com a senha digitada.
+    assert navbar.aguardar_sessao_ativa(), "Login não concluído em 30 s"
     expect(navbar.link_carteira).to_be_visible()
 
 

@@ -18,7 +18,8 @@ def test_simulacao_resgate_melhor_opcao(
 
     otimizador.simular_resgate("1000")
 
-    expect(otimizador.tabela_resultados).to_be_visible()
+    # A API do otimizador pode demorar (cold start do Lambda).
+    expect(otimizador.tabela_resultados).to_be_visible(timeout=15000)
 
     melhor_opcao = otimizador.obter_melhor_opcao()
     expect(melhor_opcao).to_be_visible()
