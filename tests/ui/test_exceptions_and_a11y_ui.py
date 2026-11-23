@@ -1,7 +1,7 @@
 import random
 
 import pytest
-from playwright.sync_api import Page, expect, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import Page, expect
 
 from pages.exceptions_a11y_page import ExceptionsA11yPage
 from pages.login_modal_page import LoginModalPage
@@ -52,7 +52,7 @@ def test_aporte_com_formulario_vazio_nao_insere(
 
     a11y_page.limpar_campo(portfolio_page.input_quantidade)
     a11y_page.limpar_campo(portfolio_page.input_preco_compra)
-    portfolio_page.botao_adicionar.click()
+    portfolio_page.submeter_formulario()
 
     assert not a11y_page.campo_e_valido(portfolio_page.input_quantidade)
     assert not a11y_page.campo_e_valido(portfolio_page.input_preco_compra)
@@ -83,25 +83,9 @@ def test_aporte_negativo_exibe_erro(
             "Poupança", dias_inv, dias_plan
         )
 
-        try:
-            linha.wait_for(state="visible", timeout=3000)
-            botao_excluir = linha.locator(
-                "[data-testid^='btn-delete-asset-']"
-            )
-
-            def aceitar_confirmacao(dialog):
-                dialog.accept()
-
-            portfolio_page.page.on("dialog", aceitar_confirmacao)
-            try:
-                botao_excluir.click()
-            finally:
-                portfolio_page.page.remove_listener(
-                    "dialog", aceitar_confirmacao
-                )
-
-        except PlaywrightTimeoutError:
-            pass
+        if linha.count() > 0:
+            # O PortfolioPage já aceita o diálogo de confirmação da exclusão.
+            portfolio_page.excluir_linha(linha)
 
 
 def test_campo_numerico_bloqueia_letras(
