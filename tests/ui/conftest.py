@@ -49,7 +49,9 @@ def logged_page(page: Page, base_url: str, navbar: NavbarComponent, login_modal:
     expect(login_modal.container_modal).to_be_visible()
 
     login_modal.realizar_login(TEST_USER, TEST_PASSWORD)
-    expect(navbar.botao_sair).to_be_visible(timeout=10000)
+    if not navbar.aguardar_sessao_ativa():
+        # pytrace=False: mensagem curta, sem o snapshot da tela (que mostraria a senha).
+        pytest.fail("Login não concluído em 30 s (API lenta ou fora do ar).", pytrace=False)
 
     return page
 

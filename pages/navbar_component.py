@@ -1,6 +1,9 @@
-from playwright.sync_api import Page
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 
 from pages.base_page import BasePage
+
+# A API roda em AWS Lambda e pode demorar para "acordar" (cold start).
+TEMPO_LOGIN_MS = 30000
 
 
 class NavbarComponent(BasePage):
@@ -20,6 +23,18 @@ class NavbarComponent(BasePage):
 
     def clicar_sair(self):
         self.botao_sair.click()
+
+    def aguardar_sessao_ativa(self, timeout: int = TEMPO_LOGIN_MS) -> bool:
+        """Espera o botão Sair aparecer depois do login.
+
+        Devolve True/False em vez de falhar com expect(): assim, se o login
+        não responder, o log do pytest não imprime a tela com a senha digitada.
+        """
+        try:
+            self.botao_sair.wait_for(state="visible", timeout=timeout)
+            return True
+        except PlaywrightTimeoutError:
+            return False
 
     def navegar_para_carteira(self):
         self.link_carteira.click()
