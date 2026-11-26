@@ -89,10 +89,13 @@ Ao final de cada teste é salvo um print em `reports/screenshots/` e anexado ao 
 Os testes abaixo **falham de propósito**: eles detectam erros reais do InvestApp
 (roteiro, item 10.3). Detalhes em `DEFEITOS_ENCONTRADOS.md`.
 
-| Defeito | Testes que detectam |
-|---|---|
-| `PUT /api/assets` cria registro duplicado em vez de atualizar; a tela continua mostrando a taxa antiga | `test_alterar_taxa_atualiza_coluna_salva`, `test_taxa_alterada_persiste_apos_navegar` |
-| A carteira aceita e grava aporte com quantidade negativa, sem mensagem de erro | `test_cadastro_aporte_ddt_pom[...-200.00...False]`, `test_aporte_negativo_exibe_erro` |
+| # | Defeito (confirmado manualmente no site) | Testes que detectam |
+|---|---|---|
+| 1 | **Taxa salva não aparece.** Em Gerenciar Taxas, salvar 7.25 na Poupança exibe "Sua taxa personalizada para Poupança foi salva com sucesso!", mas a coluna continua em 6.17% a.a. A API mantém 10 registros "Poupança" com taxas diferentes; o salvamento atualiza um deles e a tela sempre exibe o primeiro. | `test_alterar_taxa_atualiza_coluna_salva`, `test_taxa_alterada_persiste_apos_navegar` |
+| 2 | **Aporte negativo aceito.** Na Carteira, quantidade -200 é enviada sem mensagem de erro (o campo não tem valor mínimo) e o aporte é gravado com valores negativos (ex.: `Poupança 77 / 365 dias -R$ 202,54`). | `test_cadastro_aporte_ddt_pom[...-200.00...False]`, `test_aporte_negativo_exibe_erro` |
+| 3 | **API sem autenticação e dados compartilhados.** `GET /api/assets` responde sem token (a documentação exige login) e lista ativos de teste de outras turmas (`ATIVO_TESTE_UPSERT_QA`, `string`, ...). | Verificação manual |
+| 4 | **Simulador com CDB errado.** Em Simulador Rentabilidade, todas as colunas "CDB" mostram o mesmo valor (-R$ 105,93) e +0,00%/mês, apesar de a taxa ser 10,50% a.a. (~0,83%/mês). O simulador identifica os aportes pelo nome e repete os dados do primeiro CDB, que é um aporte negativo. Também cria uma coluna por aporte (190 colunas) em vez de uma por ativo. | Verificação manual |
+| 5 | **Card de patrimônio zerado.** Com a carteira cheia, "PATRIMÔNIO ATUAL" e "PROJEÇÃO FUTURA TOTAL" mostram R$ 0,00; o console registra erro HTTP 400 em uma chamada da API. | `test_patrimonio_total_recalcula_apos_exclusao` |
 
 ## Fluxo de Git do grupo
 
