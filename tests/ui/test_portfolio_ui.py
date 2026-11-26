@@ -50,6 +50,40 @@ def test_cadastrar_novo_aporte_carteira(
             portfolio_page.excluir_linha(linha)
 
 
+def test_cadastrar_aporte_poupanca_conforme_roteiro(
+    logged_page: Page,
+    navbar: NavbarComponent,
+    portfolio_page: PortfolioPage
+):
+    """Cenário do roteiro (seção 5): aporte de R$ 2.500 em Poupança, 0 / 365 dias."""
+    navbar.navegar_para_carteira()
+
+    dias_inv = "0"
+    dias_plan = "365"
+
+    # Conta as linhas iguais já existentes: o login é compartilhado e o mesmo
+    # prazo pode ter sido cadastrado antes por outra execução.
+    portfolio_page.aguardar_carregamento()
+    linhas_aporte = portfolio_page.obter_linhas_por_ativo_e_prazo("Poupança", dias_inv, dias_plan)
+    total_antes = linhas_aporte.count()
+
+    portfolio_page.cadastrar_aporte(
+        ativo="Poupança",
+        quantidade="2500.00",
+        preco="1.00",
+        dias_inv=dias_inv,
+        dias_plan=dias_plan
+    )
+
+    try:
+        expect(linhas_aporte).to_have_count(total_antes + 1, timeout=15000)
+        expect(linhas_aporte.last).to_contain_text("Poupança")
+    finally:
+        # Remove o aporte criado para não acumular dados na carteira compartilhada.
+        if linhas_aporte.count() > total_antes:
+            portfolio_page.excluir_linha(linhas_aporte.last)
+
+
 def test_formulario_limpa_campos_apos_cadastro(
     logged_page: Page, navbar: NavbarComponent, portfolio_page: PortfolioPage
 ):
