@@ -1,4 +1,3 @@
-
 import random
 
 from playwright.sync_api import Page, expect
@@ -7,37 +6,6 @@ from pages.navbar_component import NavbarComponent
 from pages.portfolio_page import PortfolioPage
 
 
-def test_cadastrar_novo_aporte_carteira(
-    logged_page: Page,
-    navbar: NavbarComponent,
-    portfolio_page: PortfolioPage
-):
-    navbar.navegar_para_carteira()
-
-    dias_inv = "0"
-    dias_plan = "365"
-
-    portfolio_page.cadastrar_aporte(
-        ativo="Poupança",
-        quantidade="2500.00",
-        preco="1.00",
-        dias_inv=dias_inv,
-        dias_plan=dias_plan
-    )
-
-    linha_aporte = (
-        portfolio_page.obter_linha_por_ativo_e_prazo(
-            "Poupança",
-            dias_inv,
-            dias_plan
-        )
-    )
-
-    expect(linha_aporte).to_be_visible(timeout=5000)
-
-    expect(linha_aporte).to_contain_text(
-        "Poupança"
-    )
 def _prazo_unico() -> tuple[str, str]:
     """Gera dias decorridos/planejados únicos para achar a linha certa na tabela."""
     dias_inv = str(random.randint(100, 999))
@@ -60,6 +28,60 @@ def test_formulario_de_aporte_exibe_todos_os_campos(
     expect(portfolio_page.input_dias_planejados).to_be_visible()
     expect(portfolio_page.botao_adicionar).to_be_enabled()
 
+
+def test_cadastrar_novo_aporte_carteira(
+    logged_page: Page, navbar: NavbarComponent, portfolio_page: PortfolioPage
+):
+    """Cadastra um aporte e valida a inserção exata da linha na tabela."""
+    navbar.navegar_para_carteira()
+    dias_inv, dias_plan = _prazo_unico()
+
+    portfolio_page.aguardar_carregamento()
+    portfolio_page.cadastrar_aporte("CDB", "10", "100.00", dias_inv, dias_plan)
+
+    linha = portfolio_page.obter_linha_por_ativo_e_prazo("CDB", dias_inv, dias_plan)
+    try:
+        expect(linha).to_be_visible(timeout=10000)
+        expect(linha).to_contain_text("CDB")
+        expect(linha).to_contain_text(f"{dias_inv} / {dias_plan} dias")
+        expect(linha).to_contain_text("R$")
+    finally:
+        if linha.count() > 0:
+            portfolio_page.excluir_linha(linha)
+
+
+def test_cadastrar_aporte_poupanca_conforme_roteiro(
+    logged_page: Page,
+    navbar: NavbarComponent,
+    portfolio_page: PortfolioPage
+):
+    """Cenário do roteiro (seção 5): aporte de R$ 2.500 em Poupança, 0 / 365 dias."""
+    navbar.navegar_para_carteira()
+
+    dias_inv = "0"
+    dias_plan = "365"
+
+    # Conta as linhas iguais já existentes: o login é compartilhado e o mesmo
+    # prazo pode ter sido cadastrado antes por outra execução.
+    portfolio_page.aguardar_carregamento()
+    linhas_aporte = portfolio_page.obter_linhas_por_ativo_e_prazo("Poupança", dias_inv, dias_plan)
+    total_antes = linhas_aporte.count()
+
+    portfolio_page.cadastrar_aporte(
+        ativo="Poupança",
+        quantidade="2500.00",
+        preco="1.00",
+        dias_inv=dias_inv,
+        dias_plan=dias_plan
+    )
+
+    try:
+        expect(linhas_aporte).to_have_count(total_antes + 1, timeout=15000)
+        expect(linhas_aporte.last).to_contain_text("Poupança")
+    finally:
+        # Remove o aporte criado para não acumular dados na carteira compartilhada.
+        if linhas_aporte.count() > total_antes:
+            portfolio_page.excluir_linha(linhas_aporte.last)
 
 
 def test_formulario_limpa_campos_apos_cadastro(
@@ -137,5 +159,4 @@ def test_patrimonio_total_recalcula_apos_exclusao(
     assert abs(patrimonio_no_card - soma_da_tabela) < 0.02, (
         f"Card PATRIMÔNIO ATUAL mostra R$ {patrimonio_no_card:.2f}, "
         f"mas a soma da coluna Valor Atual é R$ {soma_da_tabela:.2f}"
-
     )
